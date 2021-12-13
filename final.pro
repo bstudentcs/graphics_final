@@ -22,12 +22,26 @@ win32 {
 }
 
 SOURCES += ui/mainwindow.cpp \
+    cs123_lib/resourceloader.cpp \
+    gl/GLDebug.cpp \
+    gl/datatype/IBO.cpp \
+    gl/datatype/VAO.cpp \
+    gl/datatype/VBO.cpp \
+    gl/datatype/VBOAttribMarker.cpp \
+    gl/util/FullScreenQuad.cpp \
     main.cpp \
     glew-1.10.0/src/glew.c \
     ui/view.cpp \
     ui/viewformat.cpp
 
 HEADERS += ui/mainwindow.h \
+    cs123_lib/resourceloader.h \
+    gl/GLDebug.h \
+    gl/datatype/IBO.h \
+    gl/datatype/VAO.h \
+    gl/datatype/VBO.h \
+    gl/datatype/VBOAttribMarker.h \
+    gl/util/FullScreenQuad.h \
     ui_mainwindow.h \
     glew-1.10.0/include/GL/glew.h \
     ui/view.h \

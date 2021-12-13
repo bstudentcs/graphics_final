@@ -1,7 +1,9 @@
 #ifndef VIEW_H
 #define VIEW_H
 
+#include "gl/util/FullScreenQuad.h"
 #include "GL/glew.h"
+#include <memory>
 #include <qgl.h>
 #include <QTime>
 #include <QTimer>
@@ -17,6 +19,8 @@ private:
     QTime m_time;
     QTimer m_timer;
     bool m_captureMouse;
+    GLuint m_rayProgram;
+    CS123::GL::FullScreenQuad* m_quad;
 
     void initializeGL();
     void paintGL();

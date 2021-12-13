@@ -1,5 +1,6 @@
 #include "view.h"
 
+#include "cs123_lib/resourceloader.h"
 #include "viewformat.h"
 #include <QApplication>
 #include <QKeyEvent>
@@ -25,6 +26,7 @@ View::View(QWidget *parent) : QGLWidget(ViewFormat(), parent),
 
 View::~View()
 {
+    delete m_quad;
 }
 
 void View::initializeGL() {
@@ -33,6 +35,7 @@ void View::initializeGL() {
     // context and all OpenGL calls have no effect.
 
     //initialize glew
+
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
     if (GLEW_OK != err) {
@@ -50,11 +53,18 @@ void View::initializeGL() {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+
+    m_rayProgram = ResourceLoader::createShaderProgram(
+                ":/shaders/shader.vert", ":/shaders/shader.frag");
+    glUseProgram(m_rayProgram);
+    m_quad = new CS123::GL::FullScreenQuad();
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void View::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    m_quad->draw();
     // TODO: Implement the demo rendering here
 }
 
