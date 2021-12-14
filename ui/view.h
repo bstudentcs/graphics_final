@@ -16,7 +16,7 @@
 
 const int numPlanets = 5;
 const float pi = 3.14159265358;
-float orbitalVelConstant = 1.0f;
+const float orbitalVelConstant = 0.1f;
 
 class View : public QGLWidget {
     Q_OBJECT
@@ -33,6 +33,7 @@ private:
     CS123::GL::FullScreenQuad* m_quad;
     glm::mat4 m_m[numPlanets];
     float m_angularVels[numPlanets];
+    glm::vec4 m_eye;
 
     void initializeGL();
     void paintGL();

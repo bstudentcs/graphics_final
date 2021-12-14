@@ -66,13 +66,16 @@ void View::initSim(){
     glUseProgram(m_rayProgram);
     m_quad = new CS123::GL::FullScreenQuad();
 
-    glm::mat4 v = glm::lookAt(
-        glm::vec3(5.f, 0.f, 0.f),
+    m_eye = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    glm::mat4 v = glm::inverse(glm::lookAt(
+        m_eye.xyz(),
         glm::vec3(0.f, 0.f, 0.f),
         glm::vec3(0.f, 1.f, 0.f)
-    );
-    GLint loc = glGetUniformLocation(m_rayProgram, "v");
+    ));
+    GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(v));
+    loc = glGetUniformLocation(m_rayProgram, "eye");
+    glUniform4fv(loc, 1, glm::value_ptr(m_eye));
 
     //planet arrays being set up
     float radii[numPlanets] = {0, 1, 2, 3, 4};
@@ -80,11 +83,12 @@ void View::initSim(){
     //translate planets to the right by radius, and give a random rotation
     for (int i = 0; i < numPlanets; i++){
         m_angularVels[i] = orbitalVelConstant*std::pow(radii[i], 2.f/3.f);
-        m_m[i] = glm::translate(glm::mat4(1.f), glm::vec3(radii[i], 0, 0));
-        m_m[i] = glm::rotate(m_m[i], std::rand()*2.f*pi, glm::vec3(0, 1, 0));
+        m_m[i] = glm::translate(glm::mat4(1.f), glm::vec3(radii[i], 0.f, 0.f));
+        m_m[i] = glm::rotate(m_m[i], std::rand()*360.f, glm::vec3(0.f, 1.f, 0.f));
+        m_m[i] = glm::inverse(m_m[i]);
     }
 
-    loc = glGetUniformLocation(m_rayProgram, "m");
+    loc = glGetUniformLocation(m_rayProgram, "inv_m");
     glUniformMatrix4fv(loc, numPlanets, GL_FALSE, reinterpret_cast<float*>(&m_m));
 }
 
@@ -102,8 +106,9 @@ void View::resizeGL(int w, int h) {
     GLint loc = glGetUniformLocation(m_rayProgram, "screenResolution");
     glUniform2f(loc, w, h);
 
-    glm::mat4 p = glm::perspective(glm::radians(45.0f), static_cast<float>(w)/static_cast<float>(h), 1.0f, 10.0f);
-    loc = glGetUniformLocation(m_rayProgram, "p");
+    glm::mat4 p = glm::inverse(glm::perspective(
+         glm::radians(45.0f), static_cast<float>(w)/static_cast<float>(h), 1.0f, 10.0f));
+    loc = glGetUniformLocation(m_rayProgram, "inv_p");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(p));
 }
 
@@ -142,14 +147,19 @@ void View::keyPressEvent(QKeyEvent *event) {
 void View::keyReleaseEvent(QKeyEvent *event) {
 
 }
-
 void View::tick() {
     // Get the number of seconds since the last tick (variable update rate)
     float seconds = m_time.restart() * 0.001f;
 
+    //rotate planets depending on their angular velocity
     for (int i = 0; i < numPlanets; i++){
+        m_m[i] = glm::inverse(m_m[i]);
         m_m[i] = glm::rotate(m_m[i], seconds*m_angularVels[i], glm::vec3(0, 1, 0));
+        m_m[i] = glm::inverse(m_m[i]);
     }
+
+    GLint loc = glGetUniformLocation(m_rayProgram, "inv_m");
+    glUniformMatrix4fv(loc, numPlanets, GL_FALSE, reinterpret_cast<float*>(&m_m));
 
     // Flag this view for repainting (Qt will call paintGL() soon after)
     update();
