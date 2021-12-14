@@ -1,12 +1,22 @@
 #ifndef VIEW_H
 #define VIEW_H
 
+#include "glm/glm.hpp"            // glm::vec*, mat*, and basic glm functions
+#include "glm/gtx/transform.hpp"  // glm::translate, scale, rotate
+#include "glm/gtc/type_ptr.hpp"   // glm::value_ptr
+
+
 #include "gl/util/FullScreenQuad.h"
 #include "GL/glew.h"
 #include <memory>
+#include <cstdlib>
 #include <qgl.h>
 #include <QTime>
 #include <QTimer>
+
+const int numPlanets = 5;
+const float pi = 3.14159265358;
+float orbitalVelConstant = 1.0f;
 
 class View : public QGLWidget {
     Q_OBJECT
@@ -21,9 +31,12 @@ private:
     bool m_captureMouse;
     GLuint m_rayProgram;
     CS123::GL::FullScreenQuad* m_quad;
+    glm::mat4 m_m[numPlanets];
+    float m_angularVels[numPlanets];
 
     void initializeGL();
     void paintGL();
+    void initSim();
     void resizeGL(int w, int h);
 
     void mousePressEvent(QMouseEvent *event);

@@ -6,6 +6,7 @@
 #include <QKeyEvent>
 #include <iostream>
 
+
 View::View(QWidget *parent) : QGLWidget(ViewFormat(), parent),
     m_time(), m_timer(), m_captureMouse(false)
 {
@@ -54,12 +55,37 @@ void View::initializeGL() {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
+    initSim();
+}
+
+void View::initSim(){
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     m_rayProgram = ResourceLoader::createShaderProgram(
-                ":/shaders/shader.vert", ":/shaders/shader.frag");
+                ":/shaders/default.vert", ":/shaders/default.frag");
     glUseProgram(m_rayProgram);
     m_quad = new CS123::GL::FullScreenQuad();
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+    glm::mat4 v = glm::lookAt(
+        glm::vec3(5.f, 0.f, 0.f),
+        glm::vec3(0.f, 0.f, 0.f),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+    GLint loc = glGetUniformLocation(m_rayProgram, "v");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(v));
+
+    //planet arrays being set up
+    float radii[numPlanets] = {0, 1, 2, 3, 4};
+
+    //translate planets to the right by radius, and give a random rotation
+    for (int i = 0; i < numPlanets; i++){
+        m_angularVels[i] = orbitalVelConstant*std::pow(radii[i], 2.f/3.f);
+        m_m[i] = glm::translate(glm::mat4(1.f), glm::vec3(radii[i], 0, 0));
+        m_m[i] = glm::rotate(m_m[i], std::rand()*2.f*pi, glm::vec3(0, 1, 0));
+    }
+
+    loc = glGetUniformLocation(m_rayProgram, "m");
+    glUniformMatrix4fv(loc, numPlanets, GL_FALSE, reinterpret_cast<float*>(&m_m));
 }
 
 void View::paintGL() {
@@ -73,6 +99,12 @@ void View::resizeGL(int w, int h) {
     w = static_cast<int>(w / ratio);
     h = static_cast<int>(h / ratio);
     glViewport(0, 0, w, h);
+    GLint loc = glGetUniformLocation(m_rayProgram, "screenResolution");
+    glUniform2f(loc, w, h);
+
+    glm::mat4 p = glm::perspective(glm::radians(45.0f), static_cast<float>(w)/static_cast<float>(h), 1.0f, 10.0f);
+    loc = glGetUniformLocation(m_rayProgram, "p");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(p));
 }
 
 void View::mousePressEvent(QMouseEvent *event) {
@@ -115,7 +147,9 @@ void View::tick() {
     // Get the number of seconds since the last tick (variable update rate)
     float seconds = m_time.restart() * 0.001f;
 
-    // TODO: Implement the demo update here
+    for (int i = 0; i < numPlanets; i++){
+        m_m[i] = glm::rotate(m_m[i], seconds*m_angularVels[i], glm::vec3(0, 1, 0));
+    }
 
     // Flag this view for repainting (Qt will call paintGL() soon after)
     update();

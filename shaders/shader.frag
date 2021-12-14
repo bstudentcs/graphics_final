@@ -1,14 +1,18 @@
 #version 400 core
-
-in vec3 color;
-in vec2 texc;
 out vec4 fragColor;
 
-uniform sampler2D tex;
-uniform int useTexture = 0;
+const int numPlanets = 5;
+
+uniform vec2 screenResolution;
+uniform mat4 p;
+uniform mat4 v;
+uniform mat4 m[numPlanets];
 
 void main(){
-    vec3 texColor = texture(tex, texc).rgb;
-    texColor = clamp(texColor + vec3(1-useTexture), vec3(0), vec3(1));
-    fragColor = vec4(color * texColor, 1);
+    vec2 uv = gl_FragCoord.xy/screenResolution;
+    if (length(uv - 0.5) < 0.1){
+        fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    } else {
+        fragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    }
 }
