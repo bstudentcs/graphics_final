@@ -16,9 +16,10 @@
 
 const int numPlanets = 5;
 const float pi = 3.14159265358;
-const float orbitalVelConstant = 0.3f; //changes angular velocity of planets
+const float orbitalVelConstant = 1.0f; //changes angular velocity of planets
 const float step_forward = 0.5f; //size of a click to move forward
 const float step_angle_rotation = pi/32;
+const float camera_angle = pi/6; //half the vertical field of view
 
 class View : public QGLWidget {
     Q_OBJECT

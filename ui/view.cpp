@@ -82,7 +82,11 @@ void View::initSim(){
 
     //translate planets to the right by radius, and give a random rotation
     for (int i = 0; i < numPlanets; i++){
-        m_angularVels[i] = orbitalVelConstant*std::pow(radii[i], 2.f/3.f);
+        if (i != 0){
+            m_angularVels[i] = orbitalVelConstant*std::pow(radii[i], -3.f/2.f);
+        } else {
+            m_angularVels[i] = 0;
+        }
         m_m[i] = glm::rotate(glm::mat4(1.f), 2*pi*std::rand(), glm::vec3(0.f, 1.f, 0.f));
         m_m[i] = glm::translate(m_m[i], glm::vec3(radii[i], 0.f, 0.f));
         m_m[i] = glm::inverse(m_m[i]);
@@ -113,7 +117,6 @@ void View::resizeGL(int w, int h) {
     m_w = w;
     m_h = h;
 
-    float camera_angle = pi/4;
     float k = 1;
     float vert = 2*k*glm::tan(camera_angle);
     float horiz = (vert*w)/h;
