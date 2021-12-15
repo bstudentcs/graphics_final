@@ -66,7 +66,7 @@ void View::initSim(){
     glUseProgram(m_rayProgram);
     m_quad = new CS123::GL::FullScreenQuad();
 
-    m_eye = glm::vec4(0.f, 0.f, 0.f, 1.f);
+    m_eye = glm::vec4(8.f, 0.f, 0.f, 1.f);
     glm::mat4 v = glm::inverse(glm::lookAt(
         m_eye.xyz(),
         glm::vec3(0.f, 0.f, 0.f),
@@ -83,8 +83,8 @@ void View::initSim(){
     //translate planets to the right by radius, and give a random rotation
     for (int i = 0; i < numPlanets; i++){
         m_angularVels[i] = orbitalVelConstant*std::pow(radii[i], 2.f/3.f);
-        m_m[i] = glm::translate(glm::mat4(1.f), glm::vec3(radii[i], 0.f, 0.f));
-        m_m[i] = glm::rotate(m_m[i], std::rand()*360.f, glm::vec3(0.f, 1.f, 0.f));
+        m_m[i] = glm::rotate(glm::mat4(1.f), 2*pi*std::rand(), glm::vec3(0.f, 1.f, 0.f));
+        m_m[i] = glm::translate(m_m[i], glm::vec3(radii[i], 0.f, 0.f));
         m_m[i] = glm::inverse(m_m[i]);
     }
 
@@ -110,6 +110,16 @@ void View::resizeGL(int w, int h) {
          glm::radians(45.0f), static_cast<float>(w)/static_cast<float>(h), 1.0f, 10.0f));
     loc = glGetUniformLocation(m_rayProgram, "inv_p");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(p));
+    m_w = w;
+    m_h = h;
+
+    float camera_angle = pi/4;
+    float k = 1;
+    float vert = 2*k*glm::tan(camera_angle);
+    float horiz = vert*static_cast<float>(m_w)/m_h;
+    glm::vec3 uvk = glm::vec3(horiz, vert, k);
+    loc = glGetUniformLocation(m_rayProgram, "uvk");
+    glUniform3fv(loc, 1, glm::value_ptr(uvk));
 }
 
 void View::mousePressEvent(QMouseEvent *event) {
@@ -153,9 +163,7 @@ void View::tick() {
 
     //rotate planets depending on their angular velocity
     for (int i = 0; i < numPlanets; i++){
-        m_m[i] = glm::inverse(m_m[i]);
         m_m[i] = glm::rotate(m_m[i], seconds*m_angularVels[i], glm::vec3(0, 1, 0));
-        m_m[i] = glm::inverse(m_m[i]);
     }
 
     GLint loc = glGetUniformLocation(m_rayProgram, "inv_m");

@@ -5,6 +5,7 @@ const int numPlanets = 5;
 const float IMPLICIT_SHAPE_RADIUS = 0.2f;
 
 uniform vec2 screenResolution;
+uniform vec3 uvk;
 uniform vec4 eye;
 uniform mat4 inv_p;
 uniform mat4 inv_v;
@@ -34,9 +35,11 @@ float intersection(vec3 eye, vec3 d){
 }
 
 void main(){
+    //set up ray direction
     vec2 uv = gl_FragCoord.xy/screenResolution;
     uv = (uv - 0.5)*2.f;
-    vec4 d = normalize(inv_v*inv_p*vec4(uv, -1.f, 0.f));
+    vec4 d = vec4(uv.x*uvk.x, uv.y*uvk.y, -uvk.z, 0.f);
+    d = inv_v*normalize(d);
     vec4 camera = inv_v*eye;
 
     float min_t = -1.f;
@@ -51,6 +54,6 @@ void main(){
     if (min_t > 0.f){
         fragColor = vec4(1.0, 1.0, 1.0, 1.0);
     } else {
-        fragColor = vec4(0.f, 0.f, 1.f, 0.f);//vec4(dot(d, vec4(-1.f, 0.f, 0.f, 0.f)));
+        fragColor = vec4(0.f, 0.f, 0.f, 0.f);
     }
 }
