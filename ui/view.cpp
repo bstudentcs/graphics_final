@@ -8,7 +8,7 @@
 
 
 View::View(QWidget *parent) : QGLWidget(ViewFormat(), parent),
-    m_time(), m_timer(), m_captureMouse(false)
+    m_time(), m_timer(), m_captureMouse(true)
 {
     // View needs all mouse move events, not just mouse drag events
     setMouseTracking(true);
@@ -67,13 +67,13 @@ void View::initSim(){
     m_quad = new CS123::GL::FullScreenQuad();
 
     m_eye = glm::vec4(8.f, 0.f, 0.f, 1.f);
-    glm::mat4 v = glm::inverse(glm::lookAt(
+    m_view = glm::inverse(glm::lookAt(
         m_eye.xyz(),
         glm::vec3(0.f, 0.f, 0.f),
         glm::vec3(0.f, 1.f, 0.f)
     ));
     GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(v));
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
     loc = glGetUniformLocation(m_rayProgram, "eye");
     glUniform4fv(loc, 1, glm::value_ptr(m_eye));
 
@@ -123,7 +123,7 @@ void View::resizeGL(int w, int h) {
 }
 
 void View::mousePressEvent(QMouseEvent *event) {
-
+    m_captureMouse = !m_captureMouse;
 }
 
 void View::mouseMoveEvent(QMouseEvent *event) {
@@ -141,6 +141,11 @@ void View::mouseMoveEvent(QMouseEvent *event) {
         QCursor::setPos(mapToGlobal(QPoint(width() / 2, height() / 2)));
 
         // TODO: Handle mouse movements here
+        glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), deltaX/3000.f, glm::vec3(0, 1, 0));
+        m_view = m_view*rotate;
+
+        GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
     }
 }
 

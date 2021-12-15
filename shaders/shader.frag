@@ -36,8 +36,7 @@ float intersection(vec3 eye, vec3 d){
 
 void main(){
     //set up ray direction
-    vec2 uv = gl_FragCoord.xy/screenResolution;
-    uv = (uv - 0.5)*2.f;
+    vec2 uv = (gl_FragCoord.xy + 0.5f)/screenResolution - 0.5f;
     vec4 d = vec4(uv.x*uvk.x, uv.y*uvk.y, -uvk.z, 0.f);
     d = inv_v*normalize(d);
     vec4 camera = inv_v*eye;

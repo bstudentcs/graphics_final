@@ -16,7 +16,7 @@
 
 const int numPlanets = 5;
 const float pi = 3.14159265358;
-const float orbitalVelConstant = 0.2f; //changes angular velocity of planets
+const float orbitalVelConstant = 0.3f; //changes angular velocity of planets
 
 class View : public QGLWidget {
     Q_OBJECT
@@ -32,6 +32,7 @@ private:
     float m_w, m_h;
     GLuint m_rayProgram;
     CS123::GL::FullScreenQuad* m_quad;
+    glm::mat4 m_view;
     glm::mat4 m_m[numPlanets];
     float m_angularVels[numPlanets];
     glm::vec4 m_eye;
