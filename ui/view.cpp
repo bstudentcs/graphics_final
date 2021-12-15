@@ -8,7 +8,7 @@
 
 
 View::View(QWidget *parent) : QGLWidget(ViewFormat(), parent),
-    m_time(), m_timer(), m_captureMouse(true)
+    m_time(), m_timer(), m_captureMouse(false)
 {
     // View needs all mouse move events, not just mouse drag events
     setMouseTracking(true);
@@ -116,14 +116,13 @@ void View::resizeGL(int w, int h) {
     float camera_angle = pi/4;
     float k = 1;
     float vert = 2*k*glm::tan(camera_angle);
-    float horiz = vert*static_cast<float>(m_w)/m_h;
+    float horiz = (vert*w)/h;
     glm::vec3 uvk = glm::vec3(horiz, vert, k);
     loc = glGetUniformLocation(m_rayProgram, "uvk");
     glUniform3fv(loc, 1, glm::value_ptr(uvk));
 }
 
 void View::mousePressEvent(QMouseEvent *event) {
-    m_captureMouse = !m_captureMouse;
 }
 
 void View::mouseMoveEvent(QMouseEvent *event) {
@@ -139,13 +138,6 @@ void View::mouseMoveEvent(QMouseEvent *event) {
         int deltaY = event->y() - height() / 2;
         if (!deltaX && !deltaY) return;
         QCursor::setPos(mapToGlobal(QPoint(width() / 2, height() / 2)));
-
-        // TODO: Handle mouse movements here
-        glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), deltaX/3000.f, glm::vec3(0, 1, 0));
-        m_view = m_view*rotate;
-
-        GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
-        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
     }
 }
 
@@ -156,7 +148,37 @@ void View::mouseReleaseEvent(QMouseEvent *event) {
 void View::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Escape) QApplication::quit();
 
-    // TODO: Handle keyboard presses here
+    if (event->key() == Qt::Key_A){
+        glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), step_angle_rotation, glm::vec3(0, 1, 0));
+        m_view = m_view*rotate;
+
+        GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
+    }
+
+    if (event->key() == Qt::Key_D){
+        glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), -step_angle_rotation, glm::vec3(0, 1, 0));
+        m_view = m_view*rotate;
+
+        GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
+    }
+
+    if (event->key() == Qt::Key_W){
+        glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, -step_forward));
+        m_view = m_view*translate;
+
+        GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
+    }
+
+    if (event->key() == Qt::Key_S){
+        glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, step_forward));
+        m_view = m_view*translate;
+
+        GLint loc = glGetUniformLocation(m_rayProgram, "inv_v");
+        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(m_view));
+    }
 }
 
 void View::keyReleaseEvent(QKeyEvent *event) {

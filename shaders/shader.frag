@@ -39,7 +39,7 @@ void main(){
     vec2 uv = (gl_FragCoord.xy + 0.5f)/screenResolution - 0.5f;
     vec4 d = vec4(uv.x*uvk.x, uv.y*uvk.y, -uvk.z, 0.f);
     d = inv_v*normalize(d);
-    vec4 camera = inv_v*eye;
+    vec4 camera = inv_v*vec4(0, 0, 0, 1);
 
     float min_t = -1.f;
     for (int i = 0; i < numPlanets; i++){
