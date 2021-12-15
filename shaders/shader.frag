@@ -25,7 +25,7 @@ float smallest_quad_solution(float a, float b, float c){
     return (-b + discriminant)/(2.f*a);
 }
 
-float intersection(vec4 eye, vec4 d){
+float intersection(vec3 eye, vec3 d){
     float a = dot(d, d);
     float b = 2.f*dot(eye, d);
     float c = dot(eye, eye) - IMPLICIT_SHAPE_RADIUS*IMPLICIT_SHAPE_RADIUS;
@@ -36,23 +36,18 @@ float intersection(vec4 eye, vec4 d){
 void main(){
     vec2 uv = gl_FragCoord.xy/screenResolution;
     uv = (uv - 0.5)*2.f;
-    vec4 d = normalize(inv_v*inv_p*vec4(uv, 1.f, 0.f));
-    vec4 camera = inv_v*inv_p*eye;
+    vec4 d = normalize(inv_v*inv_p*vec4(uv, -1.f, 0.f));
+    vec4 camera = inv_v*eye;
 
     float min_t = -1.f;
     for (int i = 0; i < numPlanets; i++){
         vec4 transformed_d = inv_m[i]*d;
-        vec4 transformed_eye = inv_m[i]*eye;
-        float sol = intersection(transformed_eye, transformed_d);
+        vec4 transformed_eye = inv_m[i]*camera;
+        float sol = intersection(transformed_eye.xyz, transformed_d.xyz);
         if ((sol > 0.f && sol < min_t) || min_t < 0.f){
             min_t = sol;
         }
     }
-    /*if (length(uv - 0.5) < 0.1){
-        fragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    } else {
-        fragColor = vec4(0.0, 0.0, 1.0, 1.0);
-    }*/
     if (min_t > 0.f){
         fragColor = vec4(1.0, 1.0, 1.0, 1.0);
     } else {
