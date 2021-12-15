@@ -9,6 +9,7 @@ uniform vec3 uvk;
 uniform vec4 eye;
 uniform mat4 inv_p;
 uniform mat4 inv_v;
+uniform mat4 m[numPlanets];
 uniform mat4 inv_m[numPlanets];
 
 float smallest_quad_solution(float a, float b, float c){
@@ -26,12 +27,39 @@ float smallest_quad_solution(float a, float b, float c){
     return (-b + discriminant)/(2.f*a);
 }
 
-float intersection(vec3 eye, vec3 d){
-    float a = dot(d, d);
-    float b = 2.f*dot(eye, d);
-    float c = dot(eye, eye) - IMPLICIT_SHAPE_RADIUS*IMPLICIT_SHAPE_RADIUS;
+bool intersection(vec4 eye, vec4 d, inout vec4 pos, inout vec4 grad, inout float min_t){
+    vec3 new_d = d.xyz;
+    vec3 new_eye = eye.xyz;
+
+    //determine point of intersection
+    float a = dot(new_d, new_d);
+    float b = 2.f*dot(new_eye, new_d);
+    float c = dot(new_eye, new_eye) - IMPLICIT_SHAPE_RADIUS*IMPLICIT_SHAPE_RADIUS;
     float sol = smallest_quad_solution(a, b, c);
-    return sol;
+
+    //return time, as well as position and gradient
+    if ((sol > 0.f && sol < min_t) || min_t < 0.f){
+        pos = eye + sol*d;
+        grad = normalize(vec4(pos.xyz, 0));
+        min_t = sol;
+        return true;
+    }
+    return false;
+}
+
+vec4 color(vec4 eye, vec4 pos, vec4 grad){
+    vec4 cDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 cAmbient = vec4(0.0, 0.0, 0.0, 1.0);
+
+    vec4 light_pos = vec4(0, 0, 0, 1);
+    vec4 light_color = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 to_light = normalize(pos - light_pos);
+    float cos = dot(-grad, to_light);
+    vec4 diffuse = vec4(0.0, 0.0, 0.0, 1.0);
+    if (cos > 0){
+       diffuse = cDiffuse*light_color*cos;
+    }
+    return diffuse + cAmbient;//vec4(1.0, 1.0, 1.0, 1.0);
 }
 
 void main(){
@@ -42,16 +70,27 @@ void main(){
     vec4 camera = inv_v*vec4(0, 0, 0, 1);
 
     float min_t = -1.f;
+    vec4 pos; //point of intersection
+    vec4 grad; //the gradient
+
+    //check each shape for intersection with ray
     for (int i = 0; i < numPlanets; i++){
         vec4 transformed_d = inv_m[i]*d;
         vec4 transformed_eye = inv_m[i]*camera;
-        float sol = intersection(transformed_eye.xyz, transformed_d.xyz);
-        if ((sol > 0.f && sol < min_t) || min_t < 0.f){
-            min_t = sol;
+        if (intersection(transformed_eye, transformed_d, pos, grad, min_t)){
+            grad = transpose(inv_m[i])*grad;
+
+            //sun is a special case
+            if (i == 0){
+                grad = -grad;
+            }
+            pos = m[i]*pos;
         }
     }
+
+    //shade the shapes based on intersections
     if (min_t > 0.f){
-        fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        fragColor = color(camera, pos, grad);
     } else {
         fragColor = vec4(0.f, 0.f, 0.f, 0.f);
     }

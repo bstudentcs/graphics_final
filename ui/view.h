@@ -37,6 +37,7 @@ private:
     CS123::GL::FullScreenQuad* m_quad;
     glm::mat4 m_view;
     glm::mat4 m_m[numPlanets];
+    glm::mat4 m_invm[numPlanets];
     float m_angularVels[numPlanets];
     glm::vec4 m_eye;
 
