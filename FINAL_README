@@ -1,0 +1,7 @@
+Controls work as follows: WASD changes the angle of view, UP and DOWN moves forwards and backwards.
+
+Features: GPU raytracing is the notable technical feature of the project. It works much like raytracing in the ray
+and intersect assignments. The motion of the planets and accepting user input is the only significant computation
+on the CPU. The motion of the planets is realistic, in the sense the angular velocity of each planet is the same as
+according to the inverse squared law of gravitation (though such speeds would only be possible for a very massive
+object.) 
