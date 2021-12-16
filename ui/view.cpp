@@ -79,6 +79,11 @@ void View::initSim(){
 
     //planet arrays being set up
     float radii[numPlanets] = {0, 1, 2, 3, 4};
+    float colors[numPlanets*4] = {1, 1, 1, 1,
+                                 1, 0, 0, 1,
+                                 0, 0, 1, 1,
+                                 1, 1, 0, 1,
+                                 0, 1, 1, 1};
 
     //translate planets to the right by radius, and give a random rotation
     for (int i = 0; i < numPlanets; i++){
@@ -96,6 +101,8 @@ void View::initSim(){
     glUniformMatrix4fv(loc, numPlanets, GL_FALSE, reinterpret_cast<float*>(&m_invm));
     loc = glGetUniformLocation(m_rayProgram, "m");
     glUniformMatrix4fv(loc, numPlanets, GL_FALSE, reinterpret_cast<float*>(&m_m));
+    loc = glGetUniformLocation(m_rayProgram, "planet_colors");
+    glUniform4fv(loc, numPlanets, reinterpret_cast<float*>(&colors));
 }
 
 void View::paintGL() {
